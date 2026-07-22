@@ -229,7 +229,7 @@ def load_bingo_cards(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('bingo', '0001_initial'), 
+        ('bingo', '0003_gameround_commission_percentage'), 
     ]
     operations = [
         migrations.RunPython(load_bingo_cards),

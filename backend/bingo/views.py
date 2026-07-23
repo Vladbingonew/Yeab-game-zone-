@@ -11,6 +11,19 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Logic to check if a board is a winner given the called numbers
 def check_win_condition(board, called_numbers, pattern="Line"):
+    # Fix: Safely convert dictionary board format ({'b': [...], 'i': [...]}) into a 2D matrix
+    if isinstance(board, dict):
+        if 'b' in board:
+            board = [board['b'], board['i'], board['n'], board['g'], board['o']]
+        elif '0' in board or 0 in board:
+            board = [
+                board.get(0) or board.get('0'),
+                board.get(1) or board.get('1'),
+                board.get(2) or board.get('2'),
+                board.get(3) or board.get('3'),
+                board.get(4) or board.get('4')
+            ]
+
     called_set = set(called_numbers)
     # Checking Horizontal Rows
     for row_idx in range(5):
@@ -144,7 +157,6 @@ class CheckWinView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request, game_id, card_number):
         # Optional parameter 'balls_called' tells the server which ball the phone was on
-        # This is vital for PWA/Offline mode verification.
         balls_called_count = request.query_params.get('balls_called')
         
         try:
@@ -159,7 +171,10 @@ class CheckWinView(APIView):
         # Use only the portion of the sequence called on the phone at that time
         full_sequence = game.called_numbers
         if balls_called_count:
-            effective_calls = full_sequence[:int(balls_called_count)]
+            try:
+                effective_calls = full_sequence[:int(balls_called_count)]
+            except ValueError:
+                effective_calls = full_sequence
         else:
             effective_calls = full_sequence # Verify against all if not specified
 

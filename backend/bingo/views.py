@@ -230,3 +230,10 @@ class AddCardToGameView(APIView):
         
         serializer = GameRoundSerializer(game)
         return Response(serializer.data)
+
+# NEW: List all permanent cards for offline mobile caching
+class PermanentCardListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request):
+        cards = PermanentCard.objects.all().values('card_number', 'board')
+        return Response(list(cards))

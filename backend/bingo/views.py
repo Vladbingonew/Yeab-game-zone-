@@ -11,7 +11,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Logic to check if a board is a winner given the called numbers
 def check_win_condition(board, called_numbers, pattern="Line"):
-    # Fix: Safely convert dictionary board format ({'b': [...], 'i': [...]}) into a 2D matrix
+    # Fix: Safely convert dictionary board format into a 2D matrix
     if isinstance(board, dict):
         if 'b' in board:
             board = [board['b'], board['i'], board['n'], board['g'], board['o']]
@@ -178,12 +178,20 @@ class CheckWinView(APIView):
         else:
             effective_calls = full_sequence # Verify against all if not specified
 
-        is_winner = check_win_condition(card.board, effective_calls, game.winning_pattern)
+        # --- FIX FOR REACT FRONTEND ---
+        # Convert the dictionary board into an Array of Arrays so React map() doesn't crash
+        board_data = card.board
+        if isinstance(board_data, dict) and 'b' in board_data:
+            board_matrix = [board_data['b'], board_data['i'], board_data['n'], board_data['g'], board_data['o']]
+        else:
+            board_matrix = board_data
+
+        is_winner = check_win_condition(board_matrix, effective_calls, game.winning_pattern)
         
         return Response({
             'is_winner': is_winner,
             'card_number': card.card_number,
-            'card_data': { 'board': card.board }
+            'card_data': { 'board': board_matrix }
         })
 
 # Adding a card after the game has already started
